@@ -1,0 +1,56 @@
+model:
+  _target_: audioprotopnet.modules.ppnet.ppnet.PPNet
+  backbone_model:
+    _target_: audioprotopnet.modules.baselines.convnext.ConvNextClassifier
+    num_classes: ${datamodule.dataset.n_classes}
+    num_channels: 1
+    embedding_size: ${module.network.model.prototype_shape.channels}
+    backbone_mode: True
+    checkpoint: facebook/convnext-base-224-22k
+    local_checkpoint: null
+    cache_dir: ${paths.dataset_path}/models/
+    pretrain_info:
+      hf_path: ${datamodule.dataset.hf_path}
+      hf_name: ${datamodule.dataset.hf_name}
+      hf_pretrain_name: null
+      valid_test_only: False
+  prototype_shape:
+    num_prototypes: ${module.num_prototypes}
+    channels: 1024
+    height: 1
+    width: 1
+  num_classes: ${datamodule.dataset.n_classes}
+  topk_k: 1
+  margin: null #0.1
+  init_weights: null
+  add_on_layers_type: "upsample"
+  incorrect_class_connection: null #-0.5
+  correct_class_connection: 1.
+  bias_last_layer: -2.
+  non_negative_last_layer: True
+  embedded_spectrogram_height: null #16 # Set to null if frequency weights are not to be used and learned during training.
+  pretrain_info:
+    hf_path: ${datamodule.dataset.hf_path}
+    hf_name: ${datamodule.dataset.hf_name}
+    hf_pretrain_name: null
+    valid_test_only: False
+
+model_name: ppnet_convnext
+model_type: vision
+torch_compile: True
+sampling_rate: 32_000
+normalize_waveform: null
+normalize_spectrogram: True
+
+
+
+
+
+
+
+
+
+
+
+
+

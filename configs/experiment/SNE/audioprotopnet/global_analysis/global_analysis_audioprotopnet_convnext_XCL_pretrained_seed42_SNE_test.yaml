@@ -1,0 +1,58 @@
+# @package _global_
+defaults:
+  - override /datamodule: XCL.yaml
+  - override /datamodule_push: SNE.yaml
+  - override /module: audioprotopnet_multilabel.yaml
+  - override /module/network: ppnet_convnext.yaml
+  - override /callbacks: default.yaml
+  - override /trainer: single_gpu.yaml
+  - override /datamodule/transforms: bird_default_multilabel.yaml
+  - override /paths: default.yaml
+  - override /hydra: default.yaml
+
+tags: ["SNE", "audioprotopnet", "convnext", "global_analysis", "multilabel"]
+seed: 42
+train: False
+test: False
+
+save_prototype_spectrogram_files: True
+save_prototype_waveform_files: True
+
+ckpt_path: "/mnt/oekofor/data/rheinrich/DBD/audioprotopnet/logs/train/runs/XCL/ppnet_convnext/2024-09-17_154309/callback_checkpoints/ppnet_convnext_warm.ckpt"
+
+global_analysis:
+  dataset_type: "test"
+  top_k: 5
+  class_specific: False
+
+logger:
+  wandb:
+    tags: ${tags}
+    group: "SNE_audioprotopnet_convnext_XCL_pretrained_global_analysis"
+    mode: online
+
+module:
+  num_prototypes: 48680
+  network:
+    model:
+      pretrain_info:
+        hf_path: ${datamodule.dataset.hf_path}
+        hf_name: ${datamodule.dataset.hf_name}
+        hf_pretrain_name: XCL
+        valid_test_only: False
+
+datamodule:
+  dataset:
+    direct_fingerprint: /mnt/data/DBD/data_birdset/XCL/XCL_processed_42_32d126c327feaf29
+    #direct_fingerprint: /mnt/nvme3/data/DBD/data_birdset/XCL/XCL_processed_42_8f0c4e4d2afc0cef
+  transforms:
+    preprocessing:
+      mean: -13.369 # Mean of XCL
+      std: 13.162 # Standard deviation of XCL
+
+paths:
+  dataset_path: /mnt/data/DBD/data_birdset/${datamodule.dataset.dataset_name}
+  #dataset_path: /mnt/nvme3/data/DBD/data_birdset/${datamodule.dataset.dataset_name}
+  background_path: /mnt/data/DBD/background_noise/dcase18_unpacked_wav
+  log_dir: /mnt/oekofor/data/rheinrich/DBD/audioprotopnet/logs/
+  prototype_files_dir: /mnt/oekofor/data/rheinrich/DBD/audioprotopnet/global_analysis/${datamodule_push.dataset.dataset_name}/prototype_files

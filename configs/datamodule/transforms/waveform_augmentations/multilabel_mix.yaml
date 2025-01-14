@@ -1,0 +1,7 @@
+multilabel_mix: 
+  _target_: audioprotopnet.preprocessing.augmentations.multilabelmix.MultilabelMix #birdset.datamodule.components.augmentations.MultilabelMix
+  p: 0.8
+  min_snr_in_db: 3.0
+  max_snr_in_db: 30.0
+  mix_target: union
+  max_samples: 2

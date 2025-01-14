@@ -1,0 +1,21 @@
+# @package _global_
+defaults:
+  - override /datamodule: UHH.yaml
+  - override /module: multilabel.yaml
+  - override /module/network: perch_inference.yaml
+  - override /callbacks: default.yaml 
+  - override /trainer: single_gpu.yaml
+  - override /datamodule/transforms: bird_default_multilabel.yaml
+  - override /paths: default.yaml
+  - override /hydra: default.yaml
+
+tags: ["UHH", "perch", "inference", "multilabel"]
+seed: 42
+train: False
+test: True
+
+logger:
+  wandb:
+    tags: ${tags}
+    group: "UHH_perch_inference"
+    mode: online

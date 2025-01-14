@@ -1,0 +1,3 @@
+dbscale_conversion:
+  _target_: birdset.datamodule.components.augmentations.PowerToDB
+

@@ -1,0 +1,109 @@
+# This file is a template, and might need editing before it works on your project.
+# Official language image. Look for the different tagged releases at:
+# https://hub.docker.com/r/library/python/tags/
+image: python:3.10
+
+# Change runner accordingly. These are Fraunhofer shared runners
+default:
+  tags:
+    - gpu-runner
+#    - asprunner
+#    - srmuc01
+#    - intranet
+
+stages:
+  - Static Analysis
+  - Build
+  - Test
+  - Documentation
+  - Deploy
+
+# Change pip's cache directory to be inside the project directory since we can
+# only cache local items.
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+# Pip's cache doesn't store the python packages
+# https://pip.pypa.io/en/stable/reference/pip_install/#caching
+#
+# If you want to also cache the installed packages, you have to install
+# them in a virtualenv and cache it as well.
+cache:
+  paths:
+    - .cache/pip
+    - venv/
+
+
+before_script:
+  - python -V  # Print out python version for debugging
+  - pip install --upgrade pip
+  - pip install virtualenv
+  - virtualenv venv
+  - source venv/bin/activate
+  - pip install -r requirements.txt --no-cache-dir
+  - pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu117 --no-cache-dir
+
+pylint:
+  stage: Static Analysis
+  allow_failure: true
+  script:
+    - pip install pylint
+    - pylint $CI_PROJECT_NAME --rcfile=pylintrc --fail-under=8
+
+build:
+  stage: Build
+  allow_failure: true
+  script:
+    - pip install -r requirements.txt
+    - pip install -e .
+    - pip install wheel
+    - python setup.py bdist_wheel
+    # an alternative approach is to install and run:
+    - pip install dist/*
+    # run the command here
+  artifacts:
+    paths:
+      - dist/*.whl
+
+
+tests:
+  stage: Test
+  script:
+    - pip install -r requirements.txt
+    - pip install -e .
+    - pip install pytest-cov pytest-benchmark
+    - pip install pytest-test-groups
+    - pytest --cov-report html:cov_html --cov=audioprotopnet tests/
+  dependencies: []
+  artifacts:
+    paths:
+      - coverage/
+    when: on_success
+    expire_in: 7 days
+
+pages:
+  stage: Documentation
+  environment:
+    name: Docs
+    url: $CI_PAGES_URL
+  script:
+    - pip install sphinx sphinx-rtd-theme sphinx-autodoc-typehints
+    - mkdir -p docs/api/
+    - sphinx-apidoc --separate --module-first --force -o docs/api/ audioprotopnet/
+    - sphinx-build -b html docs docs/build
+    - cp docs/build -r public
+  artifacts:
+    paths:
+      - public
+  only:
+    - tags
+
+deploy_package:
+  stage: Deploy
+  script:
+    - rm -rf dist/
+    - pip install twine versioneer wheel
+    - python setup.py sdist bdist_wheel
+    - TWINE_PASSWORD=${CI_JOB_TOKEN} TWINE_USERNAME=gitlab-ci-token python -m twine upload --verbose --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
+  only:
+    - tags

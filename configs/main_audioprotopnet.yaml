@@ -1,0 +1,42 @@
+# @package _global_
+defaults:
+  - _self_
+  - datamodule: XCL
+  - datamodule_push: XCL
+  - module: audioprotopnet_multilabel
+  - callbacks: default
+  - paths: default
+  - trainer: single_gpu
+  - logger: wandb
+  - hydra: default
+  - extras: default
+  - experiment: null
+  - hparams_search: null
+  - debug: null
+
+task_name: "train"
+start_phase: null
+ckpt_path: null
+seed: 42
+
+train: True
+test: True
+save_state_dict: True
+start_time: ${now:%Y-%m-%d_%H%M%S}
+dump_metrics: True
+
+save_prototype_waveform_files: False
+save_prototype_spectrogram_files: False
+
+local_analysis:
+  dataset_type: "test"
+  max_samples: 100
+  number_most_activated_prototypes: 20
+  number_top_classes: 10
+  classification_threshold: 0.5
+
+global_analysis:
+  dataset_type: "train"
+  top_k: 10
+  class_specific: True
+

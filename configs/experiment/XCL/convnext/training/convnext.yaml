@@ -1,0 +1,63 @@
+# @package _global_
+defaults:
+  - override /datamodule: XCL.yaml
+  - override /module: multilabel.yaml
+  - override /module/network: convnext.yaml
+  - override /callbacks: default.yaml
+  - override /trainer: single_gpu.yaml
+  - override /datamodule/transforms: bird_default_multilabel.yaml
+  - override /paths: default.yaml
+  - override /hydra: default.yaml
+
+tags: ["XCL", "convnext", "multilabel", "pretraining"]
+seed: 42
+train: True
+test: False
+
+logger:
+  wandb:
+    tags: ${tags}
+    group: "pretrain_convnext_XCL"
+    mode: online
+
+trainer:
+  min_epochs: 1
+  max_epochs: 10
+
+module:
+  network:
+    model:
+      pretrain_info:
+        hf_path: ${datamodule.dataset.hf_path}
+        hf_name: ${datamodule.dataset.hf_name}
+        hf_pretrain_name: XCL
+        valid_test_only: True
+
+datamodule:
+  dataset:
+    direct_fingerprint: /mnt/data/DBD/data_birdset/XCL/XCL_processed_42_0f80df346b834e3e
+  transforms:
+    preprocessing:
+      mean: -13.369 # Mean of XCL
+      std: 13.162 # Standard deviation of XCL
+#  loaders:
+#    train:
+#      batch_size: 64
+#      num_workers: 16
+#      pin_memory: False
+#      persistent_workers: False
+#    valid:
+#      batch_size: 64
+#      num_workers: 16
+#      pin_memory: False
+#      persistent_workers: False
+#    test:
+#      batch_size: 64
+#      num_workers: 16
+#      pin_memory: False
+#      persistent_workers: False
+
+paths:
+  dataset_path: /mnt/data/DBD/data_birdset/${datamodule.dataset.dataset_name}
+  background_path: /mnt/data/DBD/background_noise/dcase18_unpacked_wav
+  log_dir: /mnt/oekofor/data/rheinrich/DBD/audioprotopnet/logs/

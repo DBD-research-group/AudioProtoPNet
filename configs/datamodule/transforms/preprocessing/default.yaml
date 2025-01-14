@@ -1,0 +1,10 @@
+defaults:
+  - spectrogram_conversion.yaml
+  - melscale_conversion.yaml
+  - dbscale_conversion.yaml
+  - resizer.yaml
+  
+normalize_waveform: ${module.network.normalize_waveform}
+normalize_spectrogram: ${module.network.normalize_spectrogram}
+mean: -13.369 # Mean of XCM: -13.355 ; Mean of XCL: -13.369
+std: 13.162 # Standard deviation of XCM: 13.254 ; Standard deviation of XCL: 13.162

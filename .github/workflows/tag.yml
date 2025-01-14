@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    tags:
+      - '*'           # Push events to every tag not containing /
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    steps:
+      # Install python and dependencies:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pylint pytest pytest-cov
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      # Run pylint
+      - name: Run Pylint for checking of Syntax
+        run: |
+          pylint AudioProtoPNet --rcfile=pylintrc --fail-under=8
+      # Run Pytest
+      - name: Test with pytest
+        run: |
+          pytest --cov-report html:cov_html --cov=AudioProtoPNet tests/
+      - name: Archive Test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: Test Coverage
+          path: cov_html/
+          retention-days: 7
+        if: ${{ always() }}
+      - name: Build package
+          run: python -m build
+      - name: Publish package
+          uses: pypa/gh-action-pypi-publish@27b31702a0e7fc50959f5ad993c78deac1bdfc29
+          with:
+            user: __token__
+            password: ${{ secrets.PYPI_API_TOKEN }}

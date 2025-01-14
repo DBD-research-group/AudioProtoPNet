@@ -1,0 +1,16 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+.idea/
+*.py[cod]
+*$py.class
+# Exclude later, if you do not want a pipeline
+#*.gitlab-ci.yml
+
+# Coverage etc.
+.coverage
+
+# Generated Documentation
+/docs/_build/
+/docs/modules.rst
+/docs/audioprotopnet.rst
+/docs/audioprotopnet.*.rst

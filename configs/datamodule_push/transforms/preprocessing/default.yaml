@@ -1,0 +1,10 @@
+defaults:
+  - spectrogram_conversion.yaml
+  - melscale_conversion.yaml
+  - dbscale_conversion.yaml
+  - resizer.yaml
+  
+normalize_waveform: null
+normalize_spectrogram: False
+mean: null
+std: null

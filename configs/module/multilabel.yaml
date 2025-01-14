@@ -1,0 +1,34 @@
+_target_: birdset.modules.multilabel_module.MultilabelModule
+
+defaults:
+  - _self_
+  - network: convnext.yaml
+
+task: multilabel
+class_weights_loss: ${datamodule.dataset.class_weights_loss}
+prediction_table: False
+num_gpus: ${trainer.devices}
+
+optimizer:
+  _target_: torch.optim.AdamW
+  _partial_: true
+  lr: 5e-4
+  weight_decay: 1e-4
+
+metrics:
+  _target_: birdset.modules.base_module.MetricsConfig
+  num_labels: ${datamodule.dataset.n_classes}
+
+loss:
+  _target_: audioprotopnet.modules.losses.asymmetric_loss.AsymmetricLossMultiLabel
+
+output_activation:
+  _target_: "torch.sigmoid"
+  _partial_: true
+
+logging_params:
+  _target_: birdset.modules.base_module.LoggingParamsConfig
+  on_step: False
+  on_epoch: True
+  sync_dist: False
+  prog_bar: True
