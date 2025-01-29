@@ -1,104 +1,133 @@
+.. _AudioProtoPNet:
 
-===========================
- AudioProtoPNet README
-===========================
+============================================================
+AudioProtoPNet: An Interpretable Deep Learning Model for Bird Sound Classification
+============================================================
 
+Deep learning models can recognize numerous bird species based on their vocalizations but typically function as black boxes, limiting their usefulness for domain experts.
+AudioProtoPNet addresses this issue by introducing an interpretable model design based on prototype learning, allowing professionals to gain insights into the underlying computations.
+Our approach demonstrates strong predictive performance on challenging multi-label bird sound classification tasks while providing valuable explanations for ornithologists and machine learning engineers.
 
-Das ist die *README*-Datei für das Projekt *AudioProtoPNet*.
+Data
+----
 
-Diese Datei sollte UTF-8 kodiert sein und nutzt die Formatierungssprache
-`reStructuredText <http://docutils.sourceforge.net/rst.html>`_.
-Diese Readme wird potentiel genutzt um die Projekt-Webseite zu erstellen,
-oder auch als Einstieg zu einem gitlab-Repository. Sie richtet
-sich also vornehmlich an Entwickler und soll einen ersten Einstieg geben.
+Our experiments are conducted on the **BirdSet** benchmark datasets, which are available on
+`Hugging Face <https://huggingface.co/datasets/DBD-research-group/BirdSet>`_.
+The corresponding repository, which offers additional details, is accessible on
+`GitHub <https://github.com/DBD-research-group/BirdSet>`_.
 
-Hauptsächlich wird sie aber von Entwicklern direkt im Texteditor gelesen werden.
-Sie ersetzt nicht die Dokumentation die sich im ``docs/`` Verzeichnis befindet.
+Installation:
+----------------------------------
 
-Typischerweise enthält diese Datei eine Übersicht darüber wie eine Umgebung
-für das Projekt einzurichten ist, einige Beispiele zur Nutzung der Build-Tools, usw.
-Die Liste der Änderungen (Changelog) sollte nicht hier liegen (sondern in ``docs/changelog.rst``),
-aber ein kurzer *“Aktuelle Änderungen”* Abschnitt für die neueste Version ist angemessen.
+All requirements are listed in ``requirements.txt``. They can be installed via:
 
+.. code-block:: bash
 
-Repository
-==========
+    pip install -r requirements.txt
 
-Momentan ist als VCS für *AudioProtoPNet* das Fraunhofer Gitlab vorgesehen.
-Um eine reibungslose GIT Integration zu gewährleisten gibt es das File ``.gitignore``, wo aufgelistet
-wird, welche Dateien nicht mit eingecheckt werden sollen. Das sind im
-Allgemeinen alle automatisch generierten Dateien, also insbesondere
-die generierte Dokumentation. Streng genommen könnte man aber
-auch ein anderes Versionskontrollsystem (etwa SVN) verwenden.
-In diesem Fall sollte man die``.gitignore`` löschen.
+Instructions for Training the Models
+------------------------------------
 
-Im Ordner ``/tests`` wird die Struktur des Hauptordners
-(z.B. Ordner ``AudioProtoPNet/audioprotopnet``) nachgebildet.
-Alle Dateien im Ordner ``/tests`` haben das Prefix ``test_``,
-also z.B. ``test_audioprotopnet.py``.
+Train the Black-Box ConvNeXt Model
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Neben der GIT Integration kann durch die ``.gitlab-ci.yml`` Datei automatisch ein Gitlab CI/CD
-Pipeline erstellt werden. Diese erstellt die Dokumentation, Testet, Überprüft Pylint und baut das Paket.
+First, train the black-box ConvNeXt model. Navigate to the folder ``audioprotopnet/audioprotopnet/training`` and run:
 
-Notebooks sollten überhaupt nicht in dieses Repository eingecheckt werden, außer
-sie gehören wirklich zum Paket.
+.. code-block:: bash
 
-Einrichtung & Konfiguration
-===========================
+    python train_benchmarks.py experiment="XCL/convnext/training/convnext"
 
-**TODO:** Der ganze Abschnitt ist nicht besonders projektspezifisch und sollte im
-*Confluence* untergebracht werden. Hier stände dann nur ein Link, bzw. besonderheiten von *Commons*.
+This command trains a ConvNeXt model on the BirdSet XCL training dataset.
 
-Die Konfiguration des Projekts wird größtenteils über die ``setup.py`` vorgenommen.
-Ein Beispiel für eine solche Datei findet sich im `Cookiecutter-Template <https://gitlab.cc-asp.fraunhofer.de/iee_oe224/Data_Science_project_template>`.
-Üblicherweise müssen im oberen Bereich einige Einstellungen für das jeweilige Projekt angepasst werden.
+Train AudioProtoPNet
+^^^^^^^^^^^^^^^^^^^^
 
-Um das Modul in der Komandozeile verfügbar zu machen und in Python mittels ``import audioprotopnet``
-importieren zu können, muss Python wissen wo es liegt. Eine Anleitung findet sich unter
-http://confluence.iwes.fraunhofer.de/display/Organisation/OE224+Python.
+Next, train the AudioProtoPNet model by providing the checkpoint for the previously trained ConvNeXt model.
+Still in the folder ``audioprotopnet/audioprotopnet/training``, execute:
 
+.. code-block:: bash
 
-Tests
-=====
+    python train_audioprotopnet.py experiment="XCL/audioprotopnet/training/audioprotopnet_convnext_5_prototypes" \
+    module.network.model.backbone_model.local_checkpoint="path/to/convnext/checkpoint"
 
-Tests werden mit *PyTest* ausgeführt.
-Damit diese laufen muss das Modul ``audioprotopnet``
-zum Import verfügbar sein (siehe oben).
+This step replaces the original classifier of the ConvNeXt model with our prototype learning classifier, creating an inherently interpretable model.
 
-Anschließend könnnen Tests mit PyCharm via PyTest ausgeführt werden (Start in der Konsole ist auch möglich).
-PyTest sucht selbständig nach Files die entweder mit "test_" starten oder mit "_test" enden.
+Instructions for Model Evaluation
+---------------------------------
 
-Sofern *Coverage* installiert ist können die Tests auch inklusive
-“Coverage-Report” ausgeführt werden:
+Evaluate the ConvNeXt Model
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    scripts\\test_with_coverage.bat
+To evaluate the ConvNeXt model on test datasets, go to ``audioprotopnet/audioprotopnet/evaluation``.
+Execute the following command for each evaluation dataset (i.e., POW, PER, NES, UHH, HSN, NBP, SSW, SNE), specifying the checkpoint of the trained ConvNeXt:
 
-Dies erzeugt einen HTML-Report, der im (Standard-) Internet Browser angezeigt wird.
-In diesem Report kann man direkt sehen welche Code-Teile noch nicht von Tests
-abgedeckt sind. Das Ziel sind *100% test coverage*, wenn der Wert also darunter liegt
-sollte man noch mehr Tests schreiben.
+.. code-block:: bash
 
+    python eval_benchmarks.py experiment="{experiment}/convnext/inference/convnext_inference_XCL_pretrained" \
+    module.network.model.local_checkpoint="path/to/convnext/checkpoint"
 
-Dokumentation
-=============
+Evaluate the AudioProtoPNet Model
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Die gesamte verfügbare Funktionalität sollte über Docstrings dokumentiert sein.
-Das beinhaltet *Pakete*, *Module*, *Funktionen*, *Klassen* und *(public) Methoden*.
-Nicht öffentliche Methoden und Funktionen sollten nach Möglichkeit auch dokumentiert sein
-um die spätere Anpassung zu vereinfachen.
+To evaluate the AudioProtoPNet model on the test datasets, go to ``audioprotopnet/audioprotopnet/evaluation``.
+Execute the following command for each evaluation dataset (i.e., POW, PER, NES, UHH, HSN, NBP, SSW, SNE), specifying the checkpoint of the trained AudioProtoPNet:
 
-Wir verwenden `Sphinx <www.sphinx-doc.org/en/master/>`_ zur Dokumentationserstellung.
-Dabei verwenden wir die Sprachanpassungen von
-`Napoleon <sphinxcontrib-napoleon.readthedocs.io/en/latest/>`_
-mit `Google Style Docstrings <sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html>`_
-für die Formattierung.
-Docstrings müssen also entsprechend formatiert sein um später in der Doku richtig
-dargestellt zu werden! In PyCharm können die Google Docstring direkt eingestellt werden.
+.. code-block:: bash
 
+    python eval_audioprotopnet.py experiment="{experiment}/audioprotopnet/inference/audioprotopnet_convnext_inference_XCL_pretrained_5_prototypes" \
+    ckpt_path="path/to/audioprotopnet/checkpoint"
 
-Coding-Konventionen
-===================
+Global Explanations
+-------------------
 
-Bei Code-Anpassungen ist darauf zu achten, dass die Style-Konventionen eingehalten werden.
+Beyond quantitative performance metrics, AudioProtoPNet enables global explanations by identifying the most similar training instances to each learned prototype.
+This reveals the sound patterns captured by each prototype and provides insight into what the model has learned at a global level.
 
-**TODO:** Link zu den Code-Konventionen im Confluence.
+To create global explanations for a specific training dataset (e.g., SNE), go to ``audioprotopnet/audioprotopnet/analysis/global_analysis`` and execute:
+
+.. code-block:: bash
+
+    python global_analysis.py experiment="SNE/audioprotopnet/global_analysis/global_analysis_audioprotopnet_convnext_XCL_pretrained_seed42_SNE_train" \
+    ckpt_path="path/to/audioprotopnet/checkpoint"
+
+For other datasets, adapt the configuration file accordingly.
+
+Local Explanations
+------------------
+
+AudioProtoPNet also offers local explanations for individual instances by highlighting how the spectrogram regions of a specific recording match the learned prototypes.
+This allows for deeper understanding of the model’s decision-making process case by case.
+
+To generate local explanations for a particular test dataset (e.g., SNE), go to ``audioprotopnet/audioprotopnet/analysis/local_analysis`` and run:
+
+.. code-block:: bash
+
+    python local_analysis.py experiment="SNE/audioprotopnet/local_analysis/local_analysis_audioprotopnet_convnext_XCL_pretrained_seed42_SNE_test" \
+    ckpt_path="path/to/audioprotopnet/checkpoint"
+
+Again, adapt the configuration to suit your target dataset.
+
+Authors
+-------
+
+- René Heinrich (Fraunhofer IEE, University of Kassel)
+- Lukas Rauch (University of Kassel)
+- Bernhard Sick (University of Kassel)
+- Christoph Scholz (Fraunhofer IEE, University of Kassel)
+
+Reference
+---------
+
+Please cite the paper as:
+
+.. code-block:: bibtex
+
+    @misc{heinrich2024audioprotopnetinterpretabledeeplearning,
+          title={AudioProtoPNet: An interpretable deep learning model for bird sound classification}, 
+          author={René Heinrich and Lukas Rauch and Bernhard Sick and Christoph Scholz},
+          year={2024},
+          eprint={2404.10420},
+          archivePrefix={arXiv},
+          primaryClass={cs.LG},
+          url={https://arxiv.org/abs/2404.10420}, 
+    }
