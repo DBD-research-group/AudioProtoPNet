@@ -118,16 +118,25 @@ Authors
 Reference
 ---------
 
+The paper for the model is available 
+`here <https://www.sciencedirect.com/science/article/pii/S1574954125000901>`_.
+
+The checkpoints for the models are available 
+`here <https://huggingface.co/DBD-research-group>`_.
+
+A tutorial on how to do inference with the models is available 
+`here <https://github.com/DBD-research-group/AudioProtoPNet/blob/main/Tutorial_AudioProtoPNet.ipynb>`_.
+
 Please cite the paper as:
 
 .. code-block:: bibtex
 
-    @misc{heinrich2024audioprotopnetinterpretabledeeplearning,
-          title={AudioProtoPNet: An interpretable deep learning model for bird sound classification}, 
-          author={René Heinrich and Lukas Rauch and Bernhard Sick and Christoph Scholz},
-          year={2024},
-          eprint={2404.10420},
-          archivePrefix={arXiv},
-          primaryClass={cs.LG},
-          url={https://arxiv.org/abs/2404.10420}, 
+    @article{heinrich2025audioprotopnet,
+        title={AudioProtoPNet: An interpretable deep learning model for bird sound classification},
+        author={Heinrich, Ren{\'e} and Rauch, Lukas and Sick, Bernhard and Scholz, Christoph},
+        journal={Ecological Informatics},
+        volume={87},
+        pages={103081},
+        year={2025},
+        publisher={Elsevier}
     }
