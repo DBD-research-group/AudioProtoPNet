@@ -4,6 +4,14 @@
 AudioProtoPNet: An Interpretable Deep Learning Model for Bird Sound Classification
 ============================================================
 
+.. raw:: html
+
+   <p align="center">
+     <a href="https://huggingface.co/collections/DBD-research-group/audioprotopnet-68b055e4227656c969fece44">
+       🤗 Hugging Face Model
+     </a>
+   </p>
+
 Deep learning models can recognize numerous bird species based on their vocalizations but typically function as black boxes, limiting their usefulness for domain experts.
 AudioProtoPNet addresses this issue by introducing an interpretable model design based on prototype learning, allowing professionals to gain insights into the underlying computations.
 Our approach demonstrates strong predictive performance on challenging multi-label bird sound classification tasks while providing valuable explanations for ornithologists and machine learning engineers.
