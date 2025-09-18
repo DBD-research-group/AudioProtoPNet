@@ -870,14 +870,12 @@ class AudioProtoNetModel(AudioProtoNetPreTrainedModel):
     def forward(
             self,
             input_values: torch.Tensor,
-            output_hidden_states: bool = None,
-            return_dict: bool = None
-    ) -> tuple | BaseModelOutputWithPoolingAndNoAttention:
+            output_hidden_states: bool = None
+    ) -> BaseModelOutputWithPoolingAndNoAttention:
         """
         Args:
             input_values:
             output_hidden_states:
-            return_dict:
 
         Returns:
             last_hidden_state: torch.FloatTensor = None
@@ -885,7 +883,7 @@ class AudioProtoNetModel(AudioProtoNetPreTrainedModel):
             hidden_states: Optional[Tuple[torch.FloatTensor, ...]] = None
 
         """
-        return self.backbone(input_values, output_hidden_states, return_dict)
+        return self.backbone(input_values, output_hidden_states)
 
 
 class AudioProtoNetForSequenceClassification(AudioProtoNetPreTrainedModel):
@@ -898,12 +896,6 @@ class AudioProtoNetForSequenceClassification(AudioProtoNetPreTrainedModel):
         self.head = AudioProtoNetClassificationHead(config)
 
 
-    def freeze_backbone(self):
-        pass
-
-    def int2str(self): # TODO
-        pass
-
     def forward(
             self,
             input_values: torch.Tensor,
@@ -911,10 +903,9 @@ class AudioProtoNetForSequenceClassification(AudioProtoNetPreTrainedModel):
             prototypes_of_wrong_class: torch.Tensor = None,
             output_hidden_states: bool = None,
             output_prototypical_activations: bool = None,
-            return_dict: bool = None,
-    ) -> tuple | SequenceClassifierOutputWithProtoTypeActivations:
+    ) -> SequenceClassifierOutputWithProtoTypeActivations:
 
-        backbone_outputs = self.model(input_values, output_hidden_states, return_dict)
+        backbone_outputs = self.model(input_values, output_hidden_states)
 
         last_hidden_state = backbone_outputs[0]
 
@@ -935,14 +926,6 @@ class AudioProtoNetForSequenceClassification(AudioProtoNetPreTrainedModel):
         prototype_activations = None
         if output_prototypical_activations is not None:
             prototype_activations = info[4]
-
-        if return_dict:
-            output = (logits,)
-            output += (loss, ) if loss is not None else ()
-            output += (last_hidden_state, )
-            output += (hidden_states, ) if hidden_states is not None else ()
-            output += (prototype_activations,) if prototype_activations is not None else ()
-            return output
 
         return SequenceClassifierOutputWithProtoTypeActivations(
             logits=logits,
